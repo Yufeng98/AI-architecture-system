@@ -74,11 +74,12 @@ class Module:
 
     @property
     def en(self) -> str:
-        return self.raw.split("｜")[0].strip()
+        return self.raw.split("|")[0].strip()
 
     @property
-    def zh(self) -> str:
-        parts = self.raw.split("｜")
+    def subtitle(self) -> str:
+        """The clause after the pipe, where a module title carries one."""
+        parts = self.raw.split("|", 1)
         return parts[1].strip() if len(parts) > 1 else ""
 
 
@@ -338,7 +339,7 @@ def page(
 ) -> str:
     prefix = "../" * depth
     return f"""<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -377,10 +378,11 @@ def render_home(front: Front, modules: list[Module], refs: dict[str, tuple[str, 
         mod = by_slug.get(href)
         if mod is None:
             continue
+        sub = f'<div class="card-sub">{esc(mod.subtitle)}</div>' if mod.subtitle else ""
         cards.append(
             f'<a class="card" href="{mod.slug}/index.html">'
             f'<div class="card-h">{esc(label)}</div>'
-            f'<div class="card-zh">{esc(mod.zh)}</div>'
+            f'{sub}'
             f'<div class="card-q">{inline(question, refs)}</div>'
             f'<div class="card-s">{inline(scope, refs)}</div>'
             f'<div class="card-n">{len(mod.sections)} sections · '
@@ -410,6 +412,7 @@ def render_home(front: Front, modules: list[Module], refs: dict[str, tuple[str, 
 
 def render_module(mod: Module, modules: list[Module], refs: dict[str, tuple[str, str]]) -> str:
     note = f'<blockquote class="note">{inline(mod.note, refs)}</blockquote>' if mod.note else ""
+    sub_html = f'<span class="h1-sub">{esc(mod.subtitle)}</span>' if mod.subtitle else ""
     rows = "".join(
         f'<a class="row" href="{sec.page}">'
         f'<span class="row-n">{sec.num}</span>'
@@ -418,7 +421,7 @@ def render_module(mod: Module, modules: list[Module], refs: dict[str, tuple[str,
         for sec in mod.sections
     )
     main = f"""<nav class="crumbs"><span>{esc(mod.en)}</span></nav>
-<h1>{esc(mod.num)}. {esc(mod.en)}<span class="h1-zh">{esc(mod.zh)}</span></h1>
+<h1>{esc(mod.num)}. {esc(mod.en)}{sub_html}</h1>
 {note}
 <div class="rows">{rows}</div>"""
     return page(
