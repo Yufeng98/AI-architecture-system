@@ -2711,7 +2711,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 [glm5]: https://huggingface.co/zai-org/GLM-5 "GLM-5 Official Model Card"
 [llama4]: https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct "Llama 4 Official Model Card"
 [corpus]: https://github.com/Yufeng98/AI-datacenter/tree/c49a55c6cdbbf387ca8d42bce1fac224f60d5588 "AI Datacenter Accelerator Research Corpus — source snapshot"
-[survey-project]: https://yufeng98.github.io/ai-datacenter-survey/ "Survey companion project page"
+[survey-project]: https://yufeng98.github.io/public/blogs/ai-datacenter-survey/ "Survey companion project page"
 [corpus-commit]: https://github.com/Yufeng98/AI-datacenter/commit/c49a55c6cdbbf387ca8d42bce1fac224f60d5588 "Corpus snapshot used for this revision"
 [chip-nvidia-gpu]: https://github.com/Yufeng98/AI-datacenter/blob/c49a55c6cdbbf387ca8d42bce1fac224f60d5588/chips/nvidia-gpu/summary.md
 [chip-amd-gpu]: https://github.com/Yufeng98/AI-datacenter/blob/c49a55c6cdbbf387ca8d42bce1fac224f60d5588/chips/amd-gpu/summary.md
