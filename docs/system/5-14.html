@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>5.14 训练 Runtime 与数值稳定性 · System</title>
+<script>(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="../assets/site.css" />
+<script>window.SITE_ROOT="../";</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="menu-btn" id="menu-btn" aria-label="Toggle section list" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="brand" href="../index.html">AI Architecture &amp; Systems</a>
+  <nav class="tabs"><a class="tab" href="../microarchitecture/index.html"><span class="tab-n">1</span>Microarchitecture</a><a class="tab" href="../kernel/index.html"><span class="tab-n">2</span>Kernel</a><a class="tab" href="../compiler/index.html"><span class="tab-n">3</span>Compiler</a><a class="tab" href="../architecture/index.html"><span class="tab-n">4</span>Architecture</a><a class="tab tab--active" href="../system/index.html"><span class="tab-n">5</span>System</a><a class="tab" href="../algorithms/index.html"><span class="tab-n">6</span>Algorithms</a></nav>
+  <div class="search">
+    <input id="search-input" type="search" placeholder="Search    /" autocomplete="off"
+           aria-label="Search the outline" />
+    <div class="search-results" id="search-results" hidden></div>
+  </div>
+  <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+  </button>
+</header>
+<div class="layout layout--section">
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">System</div>
+  <ul class="sb-list"><li><a class="sb-link" href="index.html">Overview</a></li><li><a class="sb-link" href="5-1.html"><span class="sb-n">5.1</span><span class="sb-t">AI Runtime 与操作系统基础</span></a></li><li><a class="sb-link" href="5-2.html"><span class="sb-n">5.2</span><span class="sb-t">Device Runtime、Driver 与 Firmware 的执行链</span></a></li><li><a class="sb-link" href="5-3.html"><span class="sb-n">5.3</span><span class="sb-t">系统指标、排队与容量规划</span></a></li><li><a class="sb-link" href="5-4.html"><span class="sb-n">5.4</span><span class="sb-t">模型工作负载与资源画像</span></a></li><li><a class="sb-link" href="5-5.html"><span class="sb-n">5.5</span><span class="sb-t">Distributed Runtime 与 Collective Communication</span></a></li><li><a class="sb-link" href="5-6.html"><span class="sb-n">5.6</span><span class="sb-t">Data Parallelism 与参数分片</span></a></li><li><a class="sb-link" href="5-7.html"><span class="sb-n">5.7</span><span class="sb-t">Tensor Parallelism</span></a></li><li><a class="sb-link" href="5-8.html"><span class="sb-n">5.8</span><span class="sb-t">Pipeline Parallelism</span></a></li><li><a class="sb-link" href="5-9.html"><span class="sb-n">5.9</span><span class="sb-t">Sequence 与 Context Parallelism</span></a></li><li><a class="sb-link" href="5-10.html"><span class="sb-n">5.10</span><span class="sb-t">Expert Parallelism</span></a></li><li><a class="sb-link" href="5-11.html"><span class="sb-n">5.11</span><span class="sb-t">混合并行与自动规划</span></a></li><li><a class="sb-link" href="5-12.html"><span class="sb-n">5.12</span><span class="sb-t">训练内存管理</span></a></li><li><a class="sb-link" href="5-13.html"><span class="sb-n">5.13</span><span class="sb-t">训练数据与 Checkpoint Pipeline</span></a></li><li><a class="sb-link sb-link--active" href="5-14.html"><span class="sb-n">5.14</span><span class="sb-t">训练 Runtime 与数值稳定性</span></a></li><li><a class="sb-link" href="5-15.html"><span class="sb-n">5.15</span><span class="sb-t">大规模训练的弹性与容错</span></a></li><li><a class="sb-link" href="5-16.html"><span class="sb-n">5.16</span><span class="sb-t">Distributed Training Frameworks 与加速器后端</span></a></li><li><a class="sb-link" href="5-17.html"><span class="sb-n">5.17</span><span class="sb-t">一次推理请求的完整生命周期</span></a></li><li><a class="sb-link" href="5-18.html"><span class="sb-n">5.18</span><span class="sb-t">Batching 与在线调度</span></a></li><li><a class="sb-link" href="5-19.html"><span class="sb-n">5.19</span><span class="sb-t">KV Cache 的分配、寻址与生命周期</span></a></li><li><a class="sb-link" href="5-20.html"><span class="sb-n">5.20</span><span class="sb-t">Prefix Cache 与多级缓存</span></a></li><li><a class="sb-link" href="5-21.html"><span class="sb-n">5.21</span><span class="sb-t">Disaggregated Serving</span></a></li><li><a class="sb-link" href="5-22.html"><span class="sb-n">5.22</span><span class="sb-t">Routing 与分布式服务调度</span></a></li><li><a class="sb-link" href="5-23.html"><span class="sb-n">5.23</span><span class="sb-t">MoE Serving 的系统设计</span></a></li><li><a class="sb-link" href="5-24.html"><span class="sb-n">5.24</span><span class="sb-t">量化模型的部署与调优</span></a></li><li><a class="sb-link" href="5-25.html"><span class="sb-n">5.25</span><span class="sb-t">稀疏模型与长上下文的系统支持</span></a></li><li><a class="sb-link" href="5-26.html"><span class="sb-n">5.26</span><span class="sb-t">Speculative Decoding 的系统实现</span></a></li><li><a class="sb-link" href="5-27.html"><span class="sb-n">5.27</span><span class="sb-t">多模型、多租户与适配器服务</span></a></li><li><a class="sb-link" href="5-28.html"><span class="sb-n">5.28</span><span class="sb-t">Serving Frameworks、组件生态与设备后端</span></a></li><li><a class="sb-link" href="5-29.html"><span class="sb-n">5.29</span><span class="sb-t">RL Post-Training Infrastructure</span></a></li><li><a class="sb-link" href="5-30.html"><span class="sb-n">5.30</span><span class="sb-t">训练—推理一致性与 RL 正确性</span></a></li><li><a class="sb-link" href="5-31.html"><span class="sb-n">5.31</span><span class="sb-t">RL Frameworks 与源码专题</span></a></li><li><a class="sb-link" href="5-32.html"><span class="sb-n">5.32</span><span class="sb-t">Multimodal 与实时语音服务</span></a></li><li><a class="sb-link" href="5-33.html"><span class="sb-n">5.33</span><span class="sb-t">Diffusion 与非自回归模型系统</span></a></li><li><a class="sb-link" href="5-34.html"><span class="sb-n">5.34</span><span class="sb-t">RAG、Agent 与复合 AI 系统</span></a></li><li><a class="sb-link" href="5-35.html"><span class="sb-n">5.35</span><span class="sb-t">集群编排与生产部署</span></a></li><li><a class="sb-link" href="5-36.html"><span class="sb-n">5.36</span><span class="sb-t">Heterogeneous Fleet 与专用资源池的调度</span></a></li><li><a class="sb-link" href="5-37.html"><span class="sb-n">5.37</span><span class="sb-t">Power／Thermal-Aware 系统运行</span></a></li><li><a class="sb-link" href="5-38.html"><span class="sb-n">5.38</span><span class="sb-t">安全、隐私与可信 AI 基础设施</span></a></li><li><a class="sb-link" href="5-39.html"><span class="sb-n">5.39</span><span class="sb-t">Observability、Benchmark 与故障排查</span></a></li><li><a class="sb-link" href="5-40.html"><span class="sb-n">5.40</span><span class="sb-t">系统源码阅读与跨层端到端实践</span></a></li></ul>
+</aside>
+<main class="content">
+<nav class="crumbs"><a href="index.html">System</a><span class="sep">/</span><span>§5.14</span></nav>
+<h1>训练 Runtime 与数值稳定性</h1>
+
+<div class="subs"><h2 class="sub" id="s5-14-1"><span class="sub-n">5.14.1</span><span class="sub-t">Training Step、Autograd 与 Optimizer Step</span><a class="hash" href="#s5-14-1" aria-label="Link to Training Step、Autograd 与 Optimizer Step">#</a></h2><h2 class="sub" id="s5-14-2"><span class="sub-n">5.14.2</span><span class="sub-t">混合精度训练与硬件／Kernel 支持范围</span><a class="hash" href="#s5-14-2" aria-label="Link to 混合精度训练与硬件／Kernel 支持范围">#</a></h2><h2 class="sub" id="s5-14-3"><span class="sub-n">5.14.3</span><span class="sub-t">Loss Scaling、Gradient Clipping 与异常检测</span><a class="hash" href="#s5-14-3" aria-label="Link to Loss Scaling、Gradient Clipping 与异常检测">#</a></h2><h2 class="sub" id="s5-14-4"><span class="sub-n">5.14.4</span><span class="sub-t">通信精度、累加顺序与可复现性</span><a class="hash" href="#s5-14-4" aria-label="Link to 通信精度、累加顺序与可复现性">#</a></h2><h2 class="sub" id="s5-14-5"><span class="sub-n">5.14.5</span><span class="sub-t">NaN／Inf、Loss Spike 与训练发散排查</span><a class="hash" href="#s5-14-5" aria-label="Link to NaN／Inf、Loss Spike 与训练发散排查">#</a></h2><h2 class="sub" id="s5-14-6"><span class="sub-n">5.14.6</span><span class="sub-t">算子、编译器与分布式训练的协同优化</span><a class="hash" href="#s5-14-6" aria-label="Link to 算子、编译器与分布式训练的协同优化">#</a></h2></div>
+<nav class="prevnext"><a class="pn pn--prev" href="5-13.html"><span class="pn-k">← Previous</span><span class="pn-t">5.13 训练数据与 Checkpoint Pipeline</span></a><a class="pn pn--next" href="5-15.html"><span class="pn-k">→ Next</span><span class="pn-t">5.15 大规模训练的弹性与容错</span></a></nav>
+</main>
+<aside class="toc" id="toc">
+  <div class="toc-head">On this page</div>
+  <ul class="toc-list"><li><a href="#s5-14-1" data-toc="s5-14-1"><span class="toc-n">5.14.1</span>Training Step、Autograd 与 Optimizer Step</a></li><li><a href="#s5-14-2" data-toc="s5-14-2"><span class="toc-n">5.14.2</span>混合精度训练与硬件／Kernel 支持范围</a></li><li><a href="#s5-14-3" data-toc="s5-14-3"><span class="toc-n">5.14.3</span>Loss Scaling、Gradient Clipping 与异常检测</a></li><li><a href="#s5-14-4" data-toc="s5-14-4"><span class="toc-n">5.14.4</span>通信精度、累加顺序与可复现性</a></li><li><a href="#s5-14-5" data-toc="s5-14-5"><span class="toc-n">5.14.5</span>NaN／Inf、Loss Spike 与训练发散排查</a></li><li><a href="#s5-14-6" data-toc="s5-14-6"><span class="toc-n">5.14.6</span>算子、编译器与分布式训练的协同优化</a></li></ul>
+</aside>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

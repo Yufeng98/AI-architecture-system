@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>1.8 Register 与片上局部状态 · Microarchitecture</title>
+<script>(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="../assets/site.css" />
+<script>window.SITE_ROOT="../";</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="menu-btn" id="menu-btn" aria-label="Toggle section list" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="brand" href="../index.html">AI Architecture &amp; Systems</a>
+  <nav class="tabs"><a class="tab tab--active" href="../microarchitecture/index.html"><span class="tab-n">1</span>Microarchitecture</a><a class="tab" href="../kernel/index.html"><span class="tab-n">2</span>Kernel</a><a class="tab" href="../compiler/index.html"><span class="tab-n">3</span>Compiler</a><a class="tab" href="../architecture/index.html"><span class="tab-n">4</span>Architecture</a><a class="tab" href="../system/index.html"><span class="tab-n">5</span>System</a><a class="tab" href="../algorithms/index.html"><span class="tab-n">6</span>Algorithms</a></nav>
+  <div class="search">
+    <input id="search-input" type="search" placeholder="Search    /" autocomplete="off"
+           aria-label="Search the outline" />
+    <div class="search-results" id="search-results" hidden></div>
+  </div>
+  <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+  </button>
+</header>
+<div class="layout layout--section">
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">Microarchitecture</div>
+  <ul class="sb-list"><li><a class="sb-link" href="index.html">Overview</a></li><li><a class="sb-link" href="1-1.html"><span class="sb-n">1.1</span><span class="sb-t">从 GEMM 到 AI 加速器</span></a></li><li><a class="sb-link" href="1-2.html"><span class="sb-n">1.2</span><span class="sb-t">数值表示、运算电路与精度契约</span></a></li><li><a class="sb-link" href="1-3.html"><span class="sb-n">1.3</span><span class="sb-t">执行组织：SIMT、异构引擎与空间执行</span></a></li><li><a class="sb-link" href="1-4.html"><span class="sb-n">1.4</span><span class="sb-t">PE 与矩阵计算单元</span></a></li><li><a class="sb-link" href="1-5.html"><span class="sb-n">1.5</span><span class="sb-t">Systolic Array 的设计</span></a></li><li><a class="sb-link" href="1-6.html"><span class="sb-n">1.6</span><span class="sb-t">Dataflow 与数据复用</span></a></li><li><a class="sb-link" href="1-7.html"><span class="sb-n">1.7</span><span class="sb-t">TPU v1 案例：从 Systolic Array 到 GEMM 执行</span></a></li><li><a class="sb-link sb-link--active" href="1-8.html"><span class="sb-n">1.8</span><span class="sb-t">Register 与片上局部状态</span></a></li><li><a class="sb-link" href="1-9.html"><span class="sb-n">1.9</span><span class="sb-t">片上 SRAM 的管理：Cache、Scratchpad 与专用 Buffer</span></a></li><li><a class="sb-link" href="1-10.html"><span class="sb-n">1.10</span><span class="sb-t">DRAM 与外部存储接口</span></a></li><li><a class="sb-link" href="1-11.html"><span class="sb-n">1.11</span><span class="sb-t">数据搬运与异步执行</span></a></li><li><a class="sb-link" href="1-12.html"><span class="sb-n">1.12</span><span class="sb-t">片上互连与同步</span></a></li><li><a class="sb-link" href="1-13.html"><span class="sb-n">1.13</span><span class="sb-t">Roofline 与性能上界</span></a></li><li><a class="sb-link" href="1-14.html"><span class="sb-n">1.14</span><span class="sb-t">GEMM 的分层映射与 Tiling</span></a></li><li><a class="sb-link" href="1-15.html"><span class="sb-n">1.15</span><span class="sb-t">矩阵引擎的数据路径与控制粒度演进</span></a></li><li><a class="sb-link" href="1-16.html"><span class="sb-n">1.16</span><span class="sb-t">非 GEMM 算子与专用支持</span></a></li><li><a class="sb-link" href="1-17.html"><span class="sb-n">1.17</span><span class="sb-t">硬件建模、实现与验证</span></a></li></ul>
+</aside>
+<main class="content">
+<nav class="crumbs"><a href="index.html">Microarchitecture</a><span class="sep">/</span><span>§1.8</span></nav>
+<h1>Register 与片上局部状态</h1>
+
+<div class="subs"><h2 class="sub" id="s1-8-1"><span class="sub-n">1.8.1</span><span class="sub-t">Register File 的容量、端口与 Banking</span><a class="hash" href="#s1-8-1" aria-label="Link to Register File 的容量、端口与 Banking">#</a></h2><h2 class="sub" id="s1-8-2"><span class="sub-n">1.8.2</span><span class="sub-t">操作数读取带宽与寄存器冲突</span><a class="hash" href="#s1-8-2" aria-label="Link to 操作数读取带宽与寄存器冲突">#</a></h2><h2 class="sub" id="s1-8-3"><span class="sub-n">1.8.3</span><span class="sub-t">线程寄存器、向量寄存器与累加器寄存器</span><a class="hash" href="#s1-8-3" aria-label="Link to 线程寄存器、向量寄存器与累加器寄存器">#</a></h2><h2 class="sub" id="s1-8-4"><span class="sub-n">1.8.4</span><span class="sub-t">寄存器压力、Occupancy 与 Spilling</span><a class="hash" href="#s1-8-4" aria-label="Link to 寄存器压力、Occupancy 与 Spilling">#</a></h2><h2 class="sub" id="s1-8-5"><span class="sub-n">1.8.5</span><span class="sub-t">通用 Register File 与专用矩阵中间状态存储</span><a class="hash" href="#s1-8-5" aria-label="Link to 通用 Register File 与专用矩阵中间状态存储">#</a></h2><h2 class="sub" id="s1-8-6"><span class="sub-n">1.8.6</span><span class="sub-t">寄存器分配、局部状态驻留与数据路径约束</span><a class="hash" href="#s1-8-6" aria-label="Link to 寄存器分配、局部状态驻留与数据路径约束">#</a></h2></div>
+<nav class="prevnext"><a class="pn pn--prev" href="1-7.html"><span class="pn-k">← Previous</span><span class="pn-t">1.7 TPU v1 案例：从 Systolic Array 到 GEMM 执行</span></a><a class="pn pn--next" href="1-9.html"><span class="pn-k">→ Next</span><span class="pn-t">1.9 片上 SRAM 的管理：Cache、Scratchpad 与专用 Buffer</span></a></nav>
+</main>
+<aside class="toc" id="toc">
+  <div class="toc-head">On this page</div>
+  <ul class="toc-list"><li><a href="#s1-8-1" data-toc="s1-8-1"><span class="toc-n">1.8.1</span>Register File 的容量、端口与 Banking</a></li><li><a href="#s1-8-2" data-toc="s1-8-2"><span class="toc-n">1.8.2</span>操作数读取带宽与寄存器冲突</a></li><li><a href="#s1-8-3" data-toc="s1-8-3"><span class="toc-n">1.8.3</span>线程寄存器、向量寄存器与累加器寄存器</a></li><li><a href="#s1-8-4" data-toc="s1-8-4"><span class="toc-n">1.8.4</span>寄存器压力、Occupancy 与 Spilling</a></li><li><a href="#s1-8-5" data-toc="s1-8-5"><span class="toc-n">1.8.5</span>通用 Register File 与专用矩阵中间状态存储</a></li><li><a href="#s1-8-6" data-toc="s1-8-6"><span class="toc-n">1.8.6</span>寄存器分配、局部状态驻留与数据路径约束</a></li></ul>
+</aside>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>
