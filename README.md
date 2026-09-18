@@ -1,10 +1,6 @@
 # AI Architecture and Systems Tutorial
 
-*A topic map from GEMM execution to datacenter-scale AI, centered on generality, specialization, and data movement.*
-
-**Revision:** 2026-09-16 · **Curriculum status:** planned topics
-
-This outline connects six layers: **Microarchitecture → Kernel → Compiler → Architecture → System → Algorithms**. Hardware chapters follow the supplied survey, *Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture*, and the [AI Datacenter Accelerator Research Corpus][corpus]. Kernel, compiler, and runtime comparisons use the corpus’s per-chip software mappings. The broader systems and algorithms topics are carried forward from the original outline, with [Awesome-ML-SYS-Tutorial][awesome] as a systems reading index.
+This tutorial covers six layers: **Microarchitecture → Kernel → Compiler → Architecture → System → Algorithms**.
 
 | Module | Primary question | Scope |
 |---|---|---|
@@ -14,19 +10,6 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 | [4. Architecture](#architecture) | How are hardware resources organized? | Accelerator taxonomy, programming models, fabrics, generations, power/cooling, and design challenges. |
 | [5. System](#system) | How are workloads executed and operated? | Distributed training, serving, post-training, runtimes, heterogeneous fleets, and production infrastructure. |
 | [6. Algorithms](#algorithms) | What computation does the model require? | Model structures, training objectives, generation, compression, and model-family evolution. |
-
-<details>
-<summary><strong>Source map and scope</strong></summary>
-
-**Survey.** Yufeng Gu, Jiazhen Wang, and Reetuparna Das, September 2026, supplied 34-page draft. “Survey §…” and figure references refer to that attachment. [Companion project page][survey-project].
-
-**Corpus.** Platform links are pinned to [commit `c49a55c6cdbb`][corpus-commit]. Per-chip records distinguish confirmed, inferred, contested, nonpublic, historical, and announced information. Those qualifications remain relevant when developing the corresponding chapters.
-
-**Core and extensions.** The survey’s core taxonomy is GPU, NPU, Spatial Dataflow, and Compute-in-Memory. Additional vendor cases, photonic/neuromorphic comparisons, and CXL/HBF topics are labeled extensions. Untagged foundations and the detailed systems/algorithms curriculum are retained topics, rather than findings attributed to the hardware survey.
-
-**Cross-layer boundaries.** Numerical hardware support, quantized kernels, compiler transformations, deployment policy, and quantization algorithms are separate topics. Likewise, collective semantics, communication algorithms, and physical topology are separated. A physical server/rack/pod need not coincide with a scale-up domain.
-
-</details>
 
 <a id="microarchitecture"></a>
 
@@ -316,7 +299,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ## 2. Kernel | Operator Implementation and Performance Optimization
 
-> Corpus alignment: distinguish operator libraries, kernel libraries, kernel languages, and compiler-owned execution paths. Kernel exercises do not imply that all vendor interfaces are public.
+> Kernel alignment: distinguish operator libraries, kernel libraries, kernel languages, and compiler-owned execution paths. Kernel exercises do not imply that all vendor interfaces are public.
 
 ### 2.1 [Kernel Programming Models and Execution Fundamentals][cuda]
 
@@ -560,7 +543,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 2.17 NPU Kernel Programming: Tiles, Scratchpad, and Heterogeneous Engines
 
-<sub>Sources: [TPU][layers-google-tpu], [Neuron][layers-aws-neuron], [Ascend][layers-huawei-ascend] and [Cambricon][chip-cambricon] corpus records.</sub>
+<sub>Sources: [TPU][layers-google-tpu], [Neuron][layers-aws-neuron], [Ascend][layers-huawei-ascend] and [Cambricon][chip-cambricon] platform records.</sub>
 
 #### 2.17.1 TPU Pallas: BlockSpec, Memory Space, and MXU/Vector Cooperation
 
@@ -600,7 +583,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 2.19 Profiling, Benchmarking, and Correctness
 
-<sub>Sources: Profiling tools in the corpus layer mappings; benchmark fundamentals retained from the original outline.</sub>
+<sub>Sources: Profiling tools in the platform layer mappings; benchmark fundamentals retained from the original outline.</sub>
 
 #### 2.19.1 Microbenchmarks, Warm-up, Asynchronous Timing, and Timing Boundaries
 
@@ -618,7 +601,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 2.20 From Operator to Model: Registration, Porting, and Backend Integration
 
-<sub>Sources: Corpus software-layer mapping; integration exercises extend the source descriptions.</sub>
+<sub>Sources: Platform software-layer mapping; integration exercises extend the source descriptions.</sub>
 
 #### 2.20.1 PyTorch Custom Operator, Autograd, and Dispatcher
 
@@ -640,11 +623,11 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ## 3. Compiler | Compilation and Program Mapping
 
-> Corpus alignment: use platform-specific compilation and loading contracts instead of assuming every accelerator exposes a CUDA-like stack.
+> Toolchain alignment: use platform-specific compilation and loading contracts instead of assuming every accelerator exposes a CUDA-like stack.
 
 ### 3.1 The AI Compilation Stack: Graphs, Operator Libraries, Kernels, and Device Execution
 
-<sub>Sources: [Corpus layer schema][corpus]; [TPU][layers-google-tpu], [Neuron][layers-aws-neuron] and [Groq][layers-groq] provide contrasting stack boundaries.</sub>
+<sub>Sources: Platform layer schema; [TPU][layers-google-tpu], [Neuron][layers-aws-neuron] and [Groq][layers-groq] provide contrasting stack boundaries.</sub>
 
 #### 3.1.1 Framework → Graph IR → Tensor/Loop IR → Device Program
 
@@ -900,7 +883,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 3.19 Executable Artifacts, Loading Contracts, and Software-Stack Visibility
 
-<sub>Sources: Corpus layer mappings for NVIDIA, AMD, Neuron, Groq and SambaNova; compatibility topics retained from the original outline.</sub>
+<sub>Sources: Platform layer mappings for NVIDIA, AMD, Neuron, Groq and SambaNova; compatibility topics retained from the original outline.</sub>
 
 #### 3.19.1 GPU: PTX/SASS, Fat Binary, and Device Code Objects
 
@@ -934,11 +917,11 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ## 4. Architecture | Accelerator Architecture and AI Datacenters
 
-> Primary structure: Survey §2–§6. Core platform classifications follow the survey; additional cases are labeled as corpus extensions or contrasts.
+> Primary structure: Survey §2–§6. Core platform classifications follow the survey; additional cases are labeled as extensions or contrasts.
 
 ### 4.1 Scope, Terminology, and Evidence Standards for Architectural Comparison
 
-<sub>Sources: Survey §3 and Tables 2–4; [corpus conventions and per-chip evidence][corpus].</sub>
+<sub>Sources: Survey §3 and Tables 2–4; per-chip evidence conventions.</sub>
 
 #### 4.1.1 Generality, Specialization, Programmability, and Deployment Flexibility
 
@@ -994,7 +977,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.4 GPU: General-Purpose Parallel Execution and Specialized Matrix Computation
 
-<sub>Sources: Survey §3 and §3.1; additional GPU records are corpus extensions, not additional survey case studies.</sub>
+<sub>Sources: Survey §3 and §3.1; additional GPU records are extensions, not additional survey case studies.</sub>
 
 #### 4.4.1 [NVIDIA GPU: SM, Tensor Core, and the CUDA Programming Model][chip-nvidia-gpu]
 
@@ -1004,13 +987,13 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.4.4 SIMT, Cache/Shared Memory, and the Boundary of Programming Responsibility
 
-#### 4.4.5 Corpus Extensions: [Biren][chip-biren], [Hygon DCU][chip-hygon-dcu], [Muxi][chip-muxi], and [Moore Threads][chip-mthreads]
+#### 4.4.5 [Biren][chip-biren], [Hygon DCU][chip-hygon-dcu], [Muxi][chip-muxi], and [Moore Threads][chip-mthreads]
 
-#### 4.4.6 Corpus Extensions: [Tianshu Zhixin][chip-tianshu-zhixin] and [Xiwang][chip-xiwang]
+#### 4.4.6 [Tianshu Zhixin][chip-tianshu-zhixin] and [Xiwang][chip-xiwang]
 
 ### 4.5 NPU: Heterogeneous Compute Engines and Shared Local Memory
 
-<sub>Sources: Survey §3 and Table 2; the final two entries broaden the case pool using the corpus.</sub>
+<sub>Sources: Survey §3 and Table 2; the final two entries broaden the case pool using additional platform records.</sub>
 
 #### 4.5.1 [Google TPU: MXU, Vector/Scalar, and Generation-Specific Units][chip-google-tpu]
 
@@ -1026,13 +1009,13 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.5.7 [Cambricon MLU: Multi-Core Neural Processor and BANG C][chip-cambricon]
 
-#### 4.5.8 Corpus Extensions: [Alibaba T-Head][chip-alibaba-t-head], [Kunlunxin][chip-kunlunxin], and [Furiosa][chip-furiosa]
+#### 4.5.8 [Alibaba T-Head][chip-alibaba-t-head], [Kunlunxin][chip-kunlunxin], and [Furiosa][chip-furiosa]
 
-#### 4.5.9 Corpus Extensions: [Sophgo][chip-sophgo], [Vastai][chip-vastaitech], [Tecorigin][chip-tecorigin], and [Stream Computing][chip-stream-computing]
+#### 4.5.9 [Sophgo][chip-sophgo], [Vastai][chip-vastaitech], [Tecorigin][chip-tecorigin], and [Stream Computing][chip-stream-computing]
 
 ### 4.6 Spatial Dataflow I: PE Arrays and Distributed Local Memory
 
-<sub>Sources: Survey §3, Fig. 4(c) and Table 2; additional PE-array and manycore cases follow the corpus labels.</sub>
+<sub>Sources: Survey §3, Fig. 4(c) and Table 2; additional PE-array and manycore cases follow the platform labels.</sub>
 
 #### 4.6.1 [Tenstorrent: Tensix, RISC-V Control, and NoC Data Movement][chip-tenstorrent]
 
@@ -1046,9 +1029,9 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.6.6 Boundaries Among On-Chip PE Mesh, In-Package Interconnect, and Inter-Accelerator Networks
 
-#### 4.6.7 Corpus Extensions: [IBM Spyre][chip-ibm-spyre] and [Enflame][chip-enflame]
+#### 4.6.7 [IBM Spyre][chip-ibm-spyre] and [Enflame][chip-enflame]
 
-#### 4.6.8 Corpus Extensions: [MN-Core][chip-preferred-networks-mn-core], [Esperanto][chip-esperanto], and [PEZY][chip-pezy]
+#### 4.6.8 [MN-Core][chip-preferred-networks-mn-core], [Esperanto][chip-esperanto], and [PEZY][chip-pezy]
 
 ### 4.7 Spatial Dataflow II: Reconfigurable Architectures
 
@@ -1062,13 +1045,13 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.7.4 Supported Operator Coverage, Graph-Mapping Capability, and Model Evolution
 
-#### 4.7.5 Corpus Extensions: [Rebellions][chip-rebellions-atom] and [Tsingmicro][chip-tsingmicro]
+#### 4.7.5 [Rebellions][chip-rebellions-atom] and [Tsingmicro][chip-tsingmicro]
 
-#### 4.7.6 Corpus Extension: [NextSilicon Maverick][chip-nextsilicon-maverick] and Runtime Reconfiguration
+#### 4.7.6 [NextSilicon Maverick][chip-nextsilicon-maverick] and Runtime Reconfiguration
 
 ### 4.8 Spatial Dataflow III: Functional-Slice Streaming
 
-<sub>Sources: Survey §3 and §3.2; [Groq layer mapping][layers-groq] and the corpus Etched dossier. Topology remains generation-specific.</sub>
+<sub>Sources: Survey §3 and §3.2; [Groq layer mapping][layers-groq] and the Etched dossier. Topology remains generation-specific.</sub>
 
 #### 4.8.1 [Groq TSP/LPU: Matrix, Vector, SRAM, and Switch Slices][chip-groq]
 
@@ -1080,11 +1063,11 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.8.5 Generational/Topological Boundary Between Early Groq Systems and Later Platforms
 
-#### 4.8.6 Corpus Extension: Model-Structure Specialization in [Etched Sohu][chip-etched-sohu] and the Scope of Public Evidence
+#### 4.8.6 Model-Structure Specialization in [Etched Sohu][chip-etched-sohu] and the Scope of Public Evidence
 
 ### 4.9 Compute-in-Memory: SRAM, DRAM, and the Location of Computation
 
-<sub>Sources: Survey §3, §3.2 and §6.2; corpus extends the case pool beyond the three surveyed CIM families.</sub>
+<sub>Sources: Survey §3, §3.2 and §6.2; additional platform records extend the case pool beyond the three surveyed CIM families.</sub>
 
 #### 4.9.1 [d-Matrix Corsair: Digital In-SRAM MAC and Capacity Memory][chip-d-matrix]
 
@@ -1096,7 +1079,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 4.9.5 Mapping Differences Between GEMV/Small-Batch and High-Reuse GEMM
 
-#### 4.9.6 Corpus Extension: Analog Flash Compute in [Mythic][chip-mythic]
+#### 4.9.6 Analog Flash Compute in [Mythic][chip-mythic]
 
 #### 4.9.7 Historical/Contrast Cases: [Untether AI][chip-untether-ai] and [Rain AI][chip-rain-ai]
 
@@ -1140,7 +1123,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.12 Programming Models: Understanding Hardware Constraints Through Software Layers
 
-<sub>Sources: [Corpus software-layer schema][corpus] and the per-chip layer mappings; survey §3 supplies the architectural context.</sub>
+<sub>Sources: Platform software-layer schema and the per-chip layer mappings; survey §3 supplies the architectural context.</sub>
 
 #### 4.12.1 Framework Integration, Compiler/IR, and Operator Library
 
@@ -1160,7 +1143,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.13 Packaging, Chiplets, and Logic–Memory Integration
 
-<sub>Sources: Survey §5.3, §5.4 and §6.2; [d-Matrix/Raptor corpus record][chip-d-matrix]. UCIe is retained as an extension.</sub>
+<sub>Sources: Survey §5.3, §5.4 and §6.2; [d-Matrix/Raptor record][chip-d-matrix]. UCIe is retained as an extension.</sub>
 
 #### 4.13.1 Monolithic Die, Multi-Chip Module, and Compute/I/O Die
 
@@ -1266,7 +1249,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.19 Scale-Out, Network Datapaths, and Optical Interconnect
 
-<sub>Sources: Survey §4 and §6.3 motivate these topics; detailed scale-out protocols and operations are extensions from the original outline and corpus.</sub>
+<sub>Sources: Survey §4 and §6.3 motivate these topics; detailed scale-out protocols and operations are extensions from the original outline and platform records.</sub>
 
 #### 4.19.1 Ethernet, InfiniBand, RoCE, and EFA
 
@@ -1358,7 +1341,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.24 GPU Generational Evolution: Compute, Data Supply, and Cooperation Scope
 
-<sub>Sources: Survey §5, Tables 3–4 and Figs. 11–15; [NVIDIA][chip-nvidia-gpu] and [AMD][chip-amd-gpu] corpus records. Preliminary specifications retain that status.</sub>
+<sub>Sources: Survey §5, Tables 3–4 and Figs. 11–15; [NVIDIA][chip-nvidia-gpu] and [AMD][chip-amd-gpu] platform records. Preliminary specifications retain that status.</sub>
 
 #### 4.24.1 NVIDIA: Pascal → Volta → Turing → Ampere → Hopper → Blackwell
 
@@ -1376,7 +1359,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.25 Specialized Accelerator Generations: Workload Positioning and Hardware–Software Co-Design
 
-<sub>Sources: Survey §2.3 and §5; [TPU][chip-google-tpu], [Neuron][chip-aws-neuron], [MTIA][chip-meta-mtia] and [Maia][chip-microsoft-maia] corpus records.</sub>
+<sub>Sources: Survey §2.3 and §5; [TPU][chip-google-tpu], [Neuron][chip-aws-neuron], [MTIA][chip-meta-mtia] and [Maia][chip-microsoft-maia] platform records.</sub>
 
 #### 4.25.1 TPU v1 → v2/v3: Bridging Inference and Training Designs
 
@@ -1412,7 +1395,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.27 Cross-Generation Comparison: Memory Hierarchy and Scale-Up Fabric
 
-<sub>Sources: Survey §5.3, Table 4 and Fig. 15; corpus numerical discrepancies remain separately documented in the linked records.</sub>
+<sub>Sources: Survey §5.3, Table 4 and Fig. 15; numerical discrepancies remain separately documented in the linked records.</sub>
 
 #### 4.27.1 HBM Capacity: Die Density, Stack Height, and Stack Count
 
@@ -1474,7 +1457,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.30 Extensions and Contrast Cases: Photonics, Neuromorphic, and Limited-Disclosure Designs
 
-<sub>Sources: [Corpus extended catalogue][corpus]; these entries do not add categories to the survey taxonomy. Reported, historical and limited-disclosure designs remain qualified.</sub>
+<sub>Sources: Extended platform catalogue; these entries do not add categories to the survey taxonomy. Reported, historical and limited-disclosure designs remain qualified.</sub>
 
 #### 4.30.1 Distinguishing Photonic Compute from Optical Interconnect
 
@@ -1494,7 +1477,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 4.31 Architectural Evaluation and Full-Stack Case Organization
 
-<sub>Sources: Survey §3–§6 and the [corpus dossier structure][corpus]; evaluation exercises are curriculum design, not measured survey findings.</sub>
+<sub>Sources: Survey §3–§6 and the per-chip dossier structure; evaluation exercises are curriculum design, not measured survey findings.</sub>
 
 #### 4.31.1 A Unified Case Template: Compute → Data Path → Memory → Host → Fabric
 
@@ -1518,7 +1501,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ## 5. System | Training, Inference, and AI Infrastructure
 
-> The original training/serving/RL scope is retained. Corpus-derived runtime boundaries and survey-derived fleet, communication, and power constraints are added as explicit cross-layer topics.
+> The original training/serving/RL scope is retained. Vendor runtime boundaries and survey-derived fleet, communication, and power constraints are added as explicit cross-layer topics.
 
 ### 5.1 AI Runtime and Operating System Fundamentals
 
@@ -1586,7 +1569,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 5.5 Distributed Runtime and Collective Communication
 
-<sub>Sources: Survey §4.4 for semantics and algorithms; corpus layer mappings for vendor runtime boundaries. Detailed API exercises remain extensions.</sub>
+<sub>Sources: Survey §4.4 for semantics and algorithms; platform layer mappings for vendor runtime boundaries. Detailed API exercises remain extensions.</sub>
 
 #### 5.5.1 Rank, World Size, Process Group, and Device Mesh
 
@@ -1932,7 +1915,7 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 ### 5.28 Serving Frameworks, Component Ecosystem, and Device Backends
 
-<sub>Sources: Original serving outline; corpus mappings motivate backend-specific coverage checks rather than assuming every framework runs on every accelerator.</sub>
+<sub>Sources: Original serving outline; platform mappings motivate backend-specific coverage checks rather than assuming every framework runs on every accelerator.</sub>
 
 #### 5.28.1 [vLLM: Engine, Scheduler, Worker, and PagedAttention][vllm]
 
@@ -2126,9 +2109,9 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 5.39.8 MLPerf, Serving Benchmarks, and Reporting Conventions
 
-### 5.40 [Reading System Source Code and Cross-Layer End-to-End Practice][awesome]
+### 5.40 Reading System Source Code and Cross-Layer End-to-End Practice
 
-<sub>Sources: Original systems reading index and corpus software-layer organization; planned walkthrough exercises.</sub>
+<sub>Sources: Original systems reading index and platform software-layer organization; planned walkthrough exercises.</sub>
 
 #### 5.40.1 Implementing a Mini Training Runtime from Scratch
 
@@ -2684,9 +2667,8 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 
 #### 6.35.8 Model Architecture Change and the Adaptability Range of Deployed Hardware
 
-<!-- Reading references: original references are retained; corpus references are pinned to the revision snapshot. -->
+<!-- Reading references: original references are retained; platform references are pinned to the revision snapshot. -->
 
-[awesome]: https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial "Awesome-ML-SYS-Tutorial"
 [tpu]: https://arxiv.org/abs/1704.04760 "In-Datacenter Performance Analysis of a Tensor Processing Unit"
 [roofline]: https://doi.org/10.1145/1498765.1498785 "Roofline: An Insightful Visual Performance Model for Multicore Architectures"
 [cuda]: https://docs.nvidia.com/cuda/cuda-programming-guide/index.html "NVIDIA CUDA Programming Guide"
@@ -2710,9 +2692,6 @@ This outline connects six layers: **Microarchitecture → Kernel → Compiler �
 [kimi25]: https://huggingface.co/moonshotai/Kimi-K2.5 "Kimi K2.5 Official Model Card"
 [glm5]: https://huggingface.co/zai-org/GLM-5 "GLM-5 Official Model Card"
 [llama4]: https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct "Llama 4 Official Model Card"
-[corpus]: https://github.com/Yufeng98/AI-datacenter/tree/c49a55c6cdbbf387ca8d42bce1fac224f60d5588 "AI Datacenter Accelerator Research Corpus — source snapshot"
-[survey-project]: https://yufeng98.github.io/public/blogs/ai-datacenter-survey/ "Survey companion project page"
-[corpus-commit]: https://github.com/Yufeng98/AI-datacenter/commit/c49a55c6cdbbf387ca8d42bce1fac224f60d5588 "Corpus snapshot used for this revision"
 [chip-nvidia-gpu]: https://github.com/Yufeng98/AI-datacenter/blob/c49a55c6cdbbf387ca8d42bce1fac224f60d5588/chips/nvidia-gpu/summary.md
 [chip-amd-gpu]: https://github.com/Yufeng98/AI-datacenter/blob/c49a55c6cdbbf387ca8d42bce1fac224f60d5588/chips/amd-gpu/summary.md
 [chip-biren]: https://github.com/Yufeng98/AI-datacenter/blob/c49a55c6cdbbf387ca8d42bce1fac224f60d5588/chips/biren/summary.md

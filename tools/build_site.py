@@ -39,7 +39,6 @@ H4 = re.compile(r"^#### (\d+\.\d+\.\d+)\s+(.+)$")
 SUBNOTE = re.compile(r"^<sub>(.*)</sub>\s*$")
 ANCHOR = re.compile(r'^<a id="([^"]+)"></a>\s*$')
 QUOTE = re.compile(r"^>\s+(.+)$")
-TAGLINE = re.compile(r"^\*([^*].*)\*$")
 
 
 class BuildError(Exception):
@@ -86,12 +85,8 @@ class Module:
 @dataclass
 class Front:
     title: str = ""
-    tagline: str = ""
-    meta: str = ""
     intro: list[str] = field(default_factory=list)
     table: list[tuple[str, str, str]] = field(default_factory=list)
-    details_summary: str = ""
-    details_body: list[str] = field(default_factory=list)
 
 
 def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
@@ -108,7 +103,6 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
     pending_anchor: str | None = None
     mod: Module | None = None
     sec: Section | None = None
-    in_details = False
 
     for ln in lines:
         if REF_DEF.match(ln) or ln.startswith("<!--"):
@@ -134,15 +128,6 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
             if m:
                 front.title = m.group(1)
                 continue
-            if ln.startswith("<details>"):
-                in_details = True
-                continue
-            if ln.startswith("</details>"):
-                in_details = False
-                continue
-            if ln.startswith("<summary>"):
-                front.details_summary = re.sub(r"</?summary>", "", ln).strip()
-                continue
             if ln.startswith("|"):
                 cells = [c.strip() for c in ln.strip().strip("|").split("|")]
                 if all(set(c) <= set("-: ") for c in cells) or cells[0] == "Module":
@@ -150,14 +135,7 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
                 if len(cells) >= 3:
                     front.table.append((cells[0], cells[1], cells[2]))
                 continue
-            m = TAGLINE.match(ln.strip())
-            if m and not front.tagline:
-                front.tagline = m.group(1)
-                continue
-            if ln.startswith("**Revision:**"):
-                front.meta = ln
-                continue
-            (front.details_body if in_details else front.intro).append(ln)
+            front.intro.append(ln)
             continue
 
         m = H3.match(ln)
@@ -390,17 +368,10 @@ def render_home(front: Front, modules: list[Module], refs: dict[str, tuple[str, 
         )
 
     intro = "".join(f"<p>{inline(p, refs)}</p>" for p in front.intro)
-    details = "".join(f"<p>{inline(p, refs)}</p>" for p in front.details_body)
 
     main = f"""<h1 class="home-h1">{inline(front.title, refs)}</h1>
-<p class="tagline">{inline(front.tagline, refs)}</p>
-<p class="meta">{inline(front.meta, refs)}</p>
 <div class="prose">{intro}</div>
-<div class="cards">{"".join(cards)}</div>
-<details class="src-map" open>
-  <summary>{inline(front.details_summary, refs)}</summary>
-  <div class="prose">{details}</div>
-</details>"""
+<div class="cards">{"".join(cards)}</div>"""
     return page(
         modules=modules,
         depth=0,

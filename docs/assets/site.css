@@ -454,9 +454,6 @@ h2.sub:hover .hash { opacity: 1; }
 /* ------------------------------------------------------------------- home */
 
 .home-h1 { font-size: 34px; margin-bottom: 10px; }
-.tagline { margin: 0 0 6px; font-size: 16px; color: var(--fg-dim); }
-.meta { margin: 0 0 22px; font-size: 13px; color: var(--fg-mute); }
-.meta strong { font-weight: 600; color: var(--fg-dim); }
 
 .prose p { margin: 0 0 12px; color: var(--fg-dim); font-size: 14.5px; line-height: 1.72; }
 .prose strong { color: var(--fg); }
@@ -489,15 +486,6 @@ h2.sub:hover .hash { opacity: 1; }
   color: var(--fg-mute);
   font-variant-numeric: tabular-nums;
 }
-
-.src-map {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 18px;
-  background: var(--bg-soft);
-}
-.src-map summary { cursor: pointer; font-size: 14px; font-weight: 600; }
-.src-map .prose { margin-top: 12px; }
 
 /* -------------------------------------------------------------- responsive */
 
