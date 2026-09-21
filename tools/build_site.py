@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Build the static docs site from README.md.
 
-Maps the three README heading levels onto the three panes of the site:
+Maps the README heading levels onto the three panes of the site:
 
     ##   module      -> top navigation bar
     ###  section     -> left sidebar (one page each)
     #### subsection  -> right "On this page" pane
+    ##### topic      -> nested entry in "On this page"
 
-The README remains the complete curriculum outline.  A section or subsection
-is published only after body content is added beneath its heading, so planned
+The README remains the complete curriculum outline. A section, subsection, or
+topic is published only after body content is added beneath it, so planned
 headings can stay in the source without filling the site with empty pages.
 
 Body content written beneath a `###` or `####` heading is rendered too:
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 import html
 import json
+import posixpath
 import re
 import shutil
 import sys
@@ -37,6 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 README = ROOT / "README.md"
 ASSET_SRC = Path(__file__).resolve().parent / "assets"
 BIB_SRC = Path(__file__).resolve().parent / "refs.bib"
+REDIRECTS_SRC = Path(__file__).resolve().parent / "redirects.json"
 OUT = ROOT / "docs"
 
 SITE_TITLE = "AI Architecture &amp; Systems"
@@ -48,7 +51,7 @@ H1 = re.compile(r"^# (.+)$")
 H2 = re.compile(r"^## (\d+)\.\s+(.+)$")
 H3 = re.compile(r"^### (\d+\.\d+)\s+(.+)$")
 H4 = re.compile(r"^#### (\d+\.\d+\.\d+)\s+(.+)$")
-SUBNOTE = re.compile(r"^<sub>(.*)</sub>\s*$")
+H5 = re.compile(r"^##### (\d+\.\d+\.\d+\.\d+)\s+(.+)$")
 ANCHOR = re.compile(r'^<a id="([^"]+)"></a>\s*$')
 QUOTE = re.compile(r"^>\s+(.+)$")
 
@@ -58,7 +61,7 @@ class BuildError(Exception):
 
 
 @dataclass
-class Sub:
+class Topic:
     num: str
     raw: str
     body: list[str] = field(default_factory=list)
@@ -69,16 +72,34 @@ class Sub:
 
 
 @dataclass
+class Sub:
+    num: str
+    raw: str
+    topics: list[Topic] = field(default_factory=list)
+    body: list[str] = field(default_factory=list)
+
+    @property
+    def is_active(self) -> bool:
+        return any(line.strip() for line in self.body) or any(
+            topic.is_active for topic in self.topics
+        )
+
+    @property
+    def active_topics(self) -> list[Topic]:
+        return [topic for topic in self.topics if topic.is_active]
+
+
+@dataclass
 class Section:
     num: str
     raw: str
-    sources: str | None = None
+    slug: str
     subs: list[Sub] = field(default_factory=list)
     body: list[str] = field(default_factory=list)
 
     @property
     def page(self) -> str:
-        return self.num.replace(".", "-") + ".html"
+        return self.slug + ".html"
 
     @property
     def is_active(self) -> bool:
@@ -135,6 +156,7 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
     pending_anchor: str | None = None
     mod: Module | None = None
     sec: Section | None = None
+    sub: Sub | None = None
     body: list[str] | None = None  # where loose lines currently accumulate
 
     for ln in lines:
@@ -151,6 +173,7 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
             mod = Module(num=m.group(1), raw=m.group(2), slug=pending_anchor or f"module-{m.group(1)}")
             modules.append(mod)
             sec = None
+            sub = None
             body = None
             pending_anchor = None
             continue
@@ -174,9 +197,15 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
 
         m = H3.match(ln)
         if m:
-            sec = Section(num=m.group(1), raw=m.group(2))
+            sec = Section(
+                num=m.group(1),
+                raw=m.group(2),
+                slug=pending_anchor or m.group(1).replace(".", "-"),
+            )
             mod.sections.append(sec)
+            sub = None
             body = sec.body
+            pending_anchor = None
             continue
 
         m = H4.match(ln)
@@ -188,10 +217,13 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
             body = sub.body
             continue
 
-        m = SUBNOTE.match(ln)
+        m = H5.match(ln)
         if m:
-            if sec is not None:
-                sec.sources = m.group(1)
+            if sub is None:
+                raise BuildError(f"topic {m.group(1)} has no parent subsection")
+            topic = Topic(num=m.group(1), raw=m.group(2))
+            sub.topics.append(topic)
+            body = topic.body
             continue
 
         m = QUOTE.match(ln)
@@ -208,6 +240,7 @@ def parse(md: str) -> tuple[Front, list[Module], dict[str, tuple[str, str]]]:
 
 def validate(modules: list[Module], refs: dict[str, tuple[str, str]]) -> None:
     seen: dict[str, str] = {}
+    pages: set[str] = set()
     for mod in modules:
         for sec in mod.sections:
             if sec.num in seen:
@@ -215,20 +248,34 @@ def validate(modules: list[Module], refs: dict[str, tuple[str, str]]) -> None:
             seen[sec.num] = sec.raw
             if not sec.num.startswith(mod.num + "."):
                 raise BuildError(f"section {sec.num} sits under module {mod.num}")
+            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", sec.slug):
+                raise BuildError(f"invalid semantic slug for section {sec.num}: {sec.slug}")
+            page = f"{mod.slug}/{sec.page}"
+            if page in pages:
+                raise BuildError(f"duplicate page path: {page}")
+            pages.add(page)
             for sub in sec.subs:
                 if sub.num in seen:
                     raise BuildError(f"duplicate subsection number {sub.num}")
                 seen[sub.num] = sub.raw
                 if not sub.num.startswith(sec.num + "."):
                     raise BuildError(f"subsection {sub.num} sits under section {sec.num}")
+                for topic in sub.topics:
+                    if topic.num in seen:
+                        raise BuildError(f"duplicate topic number {topic.num}")
+                    seen[topic.num] = topic.raw
+                    if not topic.num.startswith(sub.num + "."):
+                        raise BuildError(f"topic {topic.num} sits under subsection {sub.num}")
 
     blobs: list[str] = []
     for mod in modules:
         blobs += [mod.raw, mod.note or ""]
         for sec in mod.sections:
-            blobs += [sec.raw, sec.sources or ""] + sec.body
+            blobs += [sec.raw] + sec.body
             for s in sec.subs:
                 blobs += [s.raw] + s.body
+                for topic in s.topics:
+                    blobs += [topic.raw] + topic.body
 
     missing = set()
     for blob in blobs:
@@ -686,6 +733,38 @@ def page(
 """
 
 
+def render_redirect(source: str, target: str, fragments: dict[str, str]) -> str:
+    """Render a legacy page redirect, preserving known old subsection fragments."""
+    target_path, _, default_fragment = target.partition("#")
+    source_dir = posixpath.dirname(source)
+    relative = posixpath.relpath(target_path, source_dir or ".")
+    fallback = f"#{default_fragment}" if default_fragment else ""
+    meta_target = relative + fallback
+    script = (
+        "(function(){"
+        f"var target={json.dumps(relative)},map={json.dumps(fragments, separators=(',', ':'))},"
+        f"fallback={json.dumps(default_fragment)};"
+        "var old=location.hash.slice(1),next=map[old]||fallback;"
+        "location.replace(target+(next?'#'+next:''));"
+        "})();"
+    )
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="refresh" content="0; url={esc(meta_target)}" />
+<link rel="canonical" href="{esc(meta_target)}" />
+<title>Page moved</title>
+</head>
+<body>
+<p>This page moved to <a href="{esc(meta_target)}">{esc(meta_target)}</a>.</p>
+<script>{script}</script>
+</body>
+</html>
+"""
+
+
 # --------------------------------------------------------------------------- pages
 
 
@@ -772,13 +851,6 @@ def render_section(
     prefix = "../"  # section pages always live one level down
     cites = Cites()
 
-    sources = (
-        f'<div class="sources"><span class="sources-k">Sources</span>'
-        f'{inline(sec.sources, refs).replace("Sources: ", "", 1)}</div>'
-        if sec.sources
-        else ""
-    )
-
     lead = render_blocks(sec.body, refs, prefix, cites)
     lead_html = f'<div class="sec-body">{lead}</div>' if lead else ""
 
@@ -794,6 +866,18 @@ def render_section(
         blocks = render_blocks(sub.body, refs, prefix, cites)
         if blocks:
             parts.append(f'<div class="sub-body">{blocks}</div>')
+        for topic in sub.active_topics:
+            parts.append(
+                f'<h3 class="topic" id="{anchor(topic.num)}">'
+                f'<span class="topic-n">{topic.num}</span>'
+                f'<span class="topic-t">{inline(topic.raw, refs)}</span>'
+                f'<a class="hash" href="#{anchor(topic.num)}" '
+                f'aria-label="Link to {esc(plain(topic.raw))}">#</a>'
+                f"</h3>"
+            )
+            topic_blocks = render_blocks(topic.body, refs, prefix, cites)
+            if topic_blocks:
+                parts.append(f'<div class="topic-body">{topic_blocks}</div>')
     subs = "".join(parts)
 
     def link(side: str, item: tuple[str, str, str] | None) -> str:
@@ -813,7 +897,6 @@ def render_section(
             f'<nav class="crumbs"><a href="index.html">{esc(mod.en)}</a>'
             f'<span class="sep">/</span><span>§{sec.num}</span></nav>',
             f"<h1>{inline(sec.raw, refs)}</h1>",
-            sources,
             lead_html,
             f'<div class="subs">{subs}</div>',
             cites.render(),
@@ -822,11 +905,19 @@ def render_section(
         if x
     )
 
-    toc = "".join(
-        f'<li><a href="#{anchor(sub.num)}" data-toc="{anchor(sub.num)}">'
-        f'<span class="toc-n">{sub.num}</span>{esc(plain(sub.raw))}</a></li>'
-        for sub in sec.active_subs
-    )
+    toc_parts = []
+    for sub in sec.active_subs:
+        topics = "".join(
+            f'<li><a href="#{anchor(topic.num)}" data-toc="{anchor(topic.num)}">'
+            f'<span class="toc-n">{topic.num}</span>{esc(plain(topic.raw))}</a></li>'
+            for topic in sub.active_topics
+        )
+        nested = f'<ul class="toc-sublist">{topics}</ul>' if topics else ""
+        toc_parts.append(
+            f'<li><a href="#{anchor(sub.num)}" data-toc="{anchor(sub.num)}">'
+            f'<span class="toc-n">{sub.num}</span>{esc(plain(sub.raw))}</a>{nested}</li>'
+        )
+    toc = "".join(toc_parts)
     right = f"""<aside class="toc" id="toc">
   <div class="toc-head">On this page</div>
   <ul class="toc-list">{toc}</ul>
@@ -850,6 +941,7 @@ def render_section(
 def build() -> int:
     md = README.read_text(encoding="utf-8")
     front, modules, refs = parse(md)
+    redirects = json.loads(REDIRECTS_SRC.read_text(encoding="utf-8"))
 
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -893,6 +985,24 @@ def build() -> int:
         )
         pages += 1
 
+    generated = {
+        f"{mod.slug}/{sec.page}" for mod in modules for sec in mod.active_sections
+    }
+    for source, spec in redirects.items():
+        target = spec["target"]
+        target_path = target.partition("#")[0]
+        if source in generated:
+            raise BuildError(f"legacy redirect collides with generated page: {source}")
+        if not (OUT / target_path).is_file():
+            raise BuildError(f"legacy redirect target does not exist: {target_path}")
+        destination = OUT / source
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(
+            render_redirect(source, target, spec.get("fragments", {})),
+            encoding="utf-8",
+        )
+        pages += 1
+
     index = []
     for mod in modules:
         index.append({"n": "", "t": plain(mod.en), "u": f"{mod.slug}/index.html",
@@ -904,18 +1014,30 @@ def build() -> int:
                 index.append({"n": sub.num, "t": plain(sub.raw),
                               "u": f"{mod.slug}/{sec.page}#{anchor(sub.num)}",
                               "m": mod.en, "k": "sub"})
+                for topic in sub.active_topics:
+                    index.append({"n": topic.num, "t": plain(topic.raw),
+                                  "u": f"{mod.slug}/{sec.page}#{anchor(topic.num)}",
+                                  "m": mod.en, "k": "topic"})
     (OUT / "assets" / "search.json").write_text(
         json.dumps(index, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
 
     total_sec = sum(len(mod.sections) for mod in modules)
     total_sub = sum(len(sec.subs) for mod in modules for sec in mod.sections)
+    total_topic = sum(
+        len(sub.topics) for mod in modules for sec in mod.sections for sub in sec.subs
+    )
     active_sub = sum(len(sec.active_subs) for _, sec in flat)
+    active_topic = sum(
+        len(sub.active_topics) for _, sec in flat for sub in sec.active_subs
+    )
     print(f"modules:     {len(modules)}")
     print(f"sections:    {len(flat)} active / {total_sec} outlined")
     print(f"subsections: {active_sub} active / {total_sub} outlined")
+    print(f"topics:      {active_topic} active / {total_topic} outlined")
     print(f"figures:     {figures}")
     print(f"bib entries: {len(BIB)}")
+    print(f"redirects:   {len(redirects)}")
     print(f"pages:       {pages}")
     print(f"search:      {len(index)} entries")
     print(f"output:      {OUT}")
