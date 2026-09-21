@@ -508,6 +508,11 @@ h2.sub:hover .hash { opacity: 1; }
 /* -------------------------------------------------- module page: row listing */
 
 .rows { margin-top: 26px; border-top: 1px solid var(--border-soft); }
+.module-empty {
+  margin: 28px 0 0;
+  color: var(--fg-mute);
+  font-size: 14px;
+}
 .row {
   display: flex;
   align-items: baseline;

@@ -7,6 +7,10 @@ Maps the three README heading levels onto the three panes of the site:
     ###  section     -> left sidebar (one page each)
     #### subsection  -> right "On this page" pane
 
+The README remains the complete curriculum outline.  A section or subsection
+is published only after body content is added beneath its heading, so planned
+headings can stay in the source without filling the site with empty pages.
+
 Body content written beneath a `###` or `####` heading is rendered too:
 paragraphs, markdown tables (with an optional `Table: caption` line above them),
 bullet lists, blockquotes, and figures written as `![Caption](figures/name.svg)`.
@@ -59,6 +63,10 @@ class Sub:
     raw: str
     body: list[str] = field(default_factory=list)
 
+    @property
+    def is_active(self) -> bool:
+        return any(line.strip() for line in self.body)
+
 
 @dataclass
 class Section:
@@ -71,6 +79,16 @@ class Section:
     @property
     def page(self) -> str:
         return self.num.replace(".", "-") + ".html"
+
+    @property
+    def is_active(self) -> bool:
+        return any(line.strip() for line in self.body) or any(
+            sub.is_active for sub in self.subs
+        )
+
+    @property
+    def active_subs(self) -> list[Sub]:
+        return [sub for sub in self.subs if sub.is_active]
 
 
 @dataclass
@@ -90,6 +108,10 @@ class Module:
         """The clause after the pipe, where a module title carries one."""
         parts = self.raw.split("|", 1)
         return parts[1].strip() if len(parts) > 1 else ""
+
+    @property
+    def active_sections(self) -> list[Section]:
+        return [sec for sec in self.sections if sec.is_active]
 
 
 @dataclass
@@ -613,7 +635,7 @@ def sidebar(mod: Module, current: str | None) -> str:
         f'<li><a class="sb-link{" sb-link--active" if current is None else ""}"'
         f' href="index.html">Overview</a></li>'
     ]
-    for sec in mod.sections:
+    for sec in mod.active_sections:
         cls = "sb-link sb-link--active" if sec.num == current else "sb-link"
         items.append(
             f'<li><a class="{cls}" href="{sec.page}">'
@@ -678,15 +700,21 @@ def render_home(front: Front, modules: list[Module], refs: dict[str, tuple[str, 
         mod = by_slug.get(href)
         if mod is None:
             continue
+        active_sections = mod.active_sections
         sub = f'<div class="card-sub">{esc(mod.subtitle)}</div>' if mod.subtitle else ""
+        status = (
+            f'{len(active_sections)} sections · '
+            f'{sum(len(s.active_subs) for s in active_sections)} topics'
+            if active_sections
+            else "Planned"
+        )
         cards.append(
             f'<a class="card" href="{mod.slug}/index.html">'
             f'<div class="card-h">{esc(mod.en)}</div>'
             f'{sub}'
             f'<div class="card-q">{inline(question, refs)}</div>'
             f'<div class="card-s">{inline(scope, refs)}</div>'
-            f'<div class="card-n">{len(mod.sections)} sections · '
-            f'{sum(len(s.subs) for s in mod.sections)} topics</div></a>'
+            f'<div class="card-n">{status}</div></a>'
         )
 
     intro = "".join(f"<p>{inline(p, refs)}</p>" for p in front.intro)
@@ -710,13 +738,18 @@ def render_module(mod: Module, modules: list[Module], refs: dict[str, tuple[str,
         f'<a class="row" href="{sec.page}">'
         f'<span class="row-n">{sec.num}</span>'
         f'<span class="row-t">{inline(sec.raw, refs)}</span>'
-        f'<span class="row-c">{len(sec.subs)}</span></a>'
-        for sec in mod.sections
+        f'<span class="row-c">{len(sec.active_subs)}</span></a>'
+        for sec in mod.active_sections
+    )
+    listing = (
+        f'<div class="rows">{rows}</div>'
+        if rows
+        else '<p class="module-empty">No sections have been published yet.</p>'
     )
     main = f"""<nav class="crumbs"><span>{esc(mod.en)}</span></nav>
 <h1>{esc(mod.en)}{sub_html}</h1>
 {note}
-<div class="rows">{rows}</div>"""
+{listing}"""
     return page(
         modules=modules,
         depth=1,
@@ -750,7 +783,7 @@ def render_section(
     lead_html = f'<div class="sec-body">{lead}</div>' if lead else ""
 
     parts = []
-    for sub in sec.subs:
+    for sub in sec.active_subs:
         parts.append(
             f'<h2 class="sub" id="{anchor(sub.num)}">'
             f'<span class="sub-n">{sub.num}</span>'
@@ -792,7 +825,7 @@ def render_section(
     toc = "".join(
         f'<li><a href="#{anchor(sub.num)}" data-toc="{anchor(sub.num)}">'
         f'<span class="toc-n">{sub.num}</span>{esc(plain(sub.raw))}</a></li>'
-        for sub in sec.subs
+        for sub in sec.active_subs
     )
     right = f"""<aside class="toc" id="toc">
   <div class="toc-head">On this page</div>
@@ -831,7 +864,9 @@ def build() -> int:
         shutil.copytree(fig_src, OUT / "assets" / "figures")
         figures = sum(1 for p in (OUT / "assets" / "figures").iterdir() if p.is_file())
 
-    flat: list[tuple[Module, Section]] = [(m, s) for m in modules for s in m.sections]
+    flat: list[tuple[Module, Section]] = [
+        (mod, sec) for mod in modules for sec in mod.active_sections
+    ]
 
     pages = 0
     (OUT / "index.html").write_text(render_home(front, modules, refs), encoding="utf-8")
@@ -862,10 +897,10 @@ def build() -> int:
     for mod in modules:
         index.append({"n": "", "t": plain(mod.en), "u": f"{mod.slug}/index.html",
                       "m": mod.en, "k": "module"})
-        for sec in mod.sections:
+        for sec in mod.active_sections:
             index.append({"n": sec.num, "t": plain(sec.raw), "u": f"{mod.slug}/{sec.page}",
                           "m": mod.en, "k": "section"})
-            for sub in sec.subs:
+            for sub in sec.active_subs:
                 index.append({"n": sub.num, "t": plain(sub.raw),
                               "u": f"{mod.slug}/{sec.page}#{anchor(sub.num)}",
                               "m": mod.en, "k": "sub"})
@@ -873,15 +908,12 @@ def build() -> int:
         json.dumps(index, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
 
-    n_sec = len(flat)
-    n_sub = sum(len(s.subs) for _, s in flat)
-    n_body = sum(1 for _, s in flat if s.body and any(x.strip() for x in s.body)) + sum(
-        1 for _, s in flat for b in s.subs if b.body and any(x.strip() for x in b.body)
-    )
+    total_sec = sum(len(mod.sections) for mod in modules)
+    total_sub = sum(len(sec.subs) for mod in modules for sec in mod.sections)
+    active_sub = sum(len(sec.active_subs) for _, sec in flat)
     print(f"modules:     {len(modules)}")
-    print(f"sections:    {n_sec}")
-    print(f"subsections: {n_sub}")
-    print(f"with body:   {n_body}")
+    print(f"sections:    {len(flat)} active / {total_sec} outlined")
+    print(f"subsections: {active_sub} active / {total_sub} outlined")
     print(f"figures:     {figures}")
     print(f"bib entries: {len(BIB)}")
     print(f"pages:       {pages}")
