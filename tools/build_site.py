@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Build the static docs site from content/tutorial.md.
+"""Build the static docs site from tools/tutorial_source.md.
 
-Maps the content/tutorial.md heading levels onto the three panes of the site:
+Maps the tutorial source heading levels onto the three panes of the site:
 
     ##   module      -> top navigation bar
     ###  section     -> left sidebar (one page each)
     #### subsection  -> right "On this page" pane
     ##### topic      -> nested entry in "On this page"
 
-content/tutorial.md remains the complete curriculum outline. A section, subsection, or
-topic is published only after body content is added beneath it, so planned
-headings can stay in the source without filling the site with empty pages.
+Every consolidated section receives a semantic HTML file so the docs tree mirrors
+the full outline. A section, subsection, or topic appears in site navigation and
+search only after body content is added beneath it, keeping planned work hidden.
 
 Body content written beneath a `###` or `####` heading is rendered too:
 paragraphs, markdown tables (with an optional `Table: caption` line above them),
@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TUTORIAL = ROOT / "content" / "tutorial.md"
+TUTORIAL = ROOT / "tools" / "tutorial_source.md"
 ASSET_SRC = Path(__file__).resolve().parent / "assets"
 BIB_SRC = Path(__file__).resolve().parent / "refs.bib"
 REDIRECTS_SRC = Path(__file__).resolve().parent / "redirects.json"
@@ -475,7 +475,7 @@ _HTML_TO_MD = {"strong": "**", "b": "**", "em": "*", "i": "*", "code": "`"}
 
 
 def _demote_html(text: str) -> str:
-    """Fold the handful of raw inline HTML tags in content/tutorial.md back into markdown,
+    """Fold the handful of raw inline HTML tags in the tutorial source back into markdown,
     so they survive escaping instead of showing up as literal &lt;strong&gt;."""
     return INLINE_HTML.sub(lambda m: _HTML_TO_MD[m.group(1)], text)
 
@@ -971,22 +971,30 @@ def build() -> int:
         )
         pages += 1
 
-    for i, (mod, sec) in enumerate(flat):
-        def ref_to(j: int) -> tuple[str, str, str] | None:
-            if not 0 <= j < len(flat):
-                return None
-            m2, s2 = flat[j]
-            href = s2.page if m2 is mod else f"../{m2.slug}/{s2.page}"
-            return href, s2.num, plain(s2.raw)
+    active_position = {
+        (mod.slug, sec.slug): i for i, (mod, sec) in enumerate(flat)
+    }
 
-        (OUT / mod.slug / sec.page).write_text(
-            render_section(mod, sec, modules, refs, ref_to(i - 1), ref_to(i + 1)),
-            encoding="utf-8",
-        )
-        pages += 1
+    for mod in modules:
+        for sec in mod.sections:
+            def ref_to(j: int) -> tuple[str, str, str] | None:
+                if not 0 <= j < len(flat):
+                    return None
+                m2, s2 = flat[j]
+                href = s2.page if m2 is mod else f"../{m2.slug}/{s2.page}"
+                return href, s2.num, plain(s2.raw)
+
+            position = active_position.get((mod.slug, sec.slug))
+            prev = ref_to(position - 1) if position is not None else None
+            nxt = ref_to(position + 1) if position is not None else None
+            (OUT / mod.slug / sec.page).write_text(
+                render_section(mod, sec, modules, refs, prev, nxt),
+                encoding="utf-8",
+            )
+            pages += 1
 
     generated = {
-        f"{mod.slug}/{sec.page}" for mod in modules for sec in mod.active_sections
+        f"{mod.slug}/{sec.page}" for mod in modules for sec in mod.sections
     }
     for source, spec in redirects.items():
         target = spec["target"]

@@ -1,6 +1,6 @@
 # AI Architecture and Systems Tutorial
 
-This tutorial connects six layers of modern AI systems: **Microarchitecture → Kernel → Compiler → Architecture → System → Algorithms**. The outline below uses consolidated sections for navigation; the complete curriculum and published material live in [content/tutorial.md](content/tutorial.md).
+This tutorial connects six layers of modern AI systems: **Microarchitecture → Kernel → Compiler → Architecture → System → Algorithms**. The outline below uses consolidated sections for navigation; the complete title-only curriculum is recorded in [content/tutorial.md](content/tutorial.md), while the rendered tutorial lives in [`docs/`](docs/).
 
 **Maintainers:** [Yufeng Gu](https://yufeng98.github.io/) and [Alireza Khadem](https://www.linkedin.com/in/arkhadem)
 
