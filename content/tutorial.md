@@ -1290,7 +1290,7 @@ Table: **High-level taxonomy of AI accelerator architectures.**
 | **Spatial dataflow** | Computation graph mapped onto distributed compute, memory and communication resources, in three styles: PE array, reconfigurable fabric, functional-slice streaming | *PE array:* Tenstorrent, Meta MTIA, Tesla Dojo, Graphcore IPU, Cerebras; *reconfigurable:* SambaNova; *functional-slice:* Groq |
 | **Compute-in-memory** | Memory-centric architecture integrating compute logic in or near SRAM or DRAM to reduce data movement | d-Matrix, SK hynix AiM, Samsung PIM |
 
-![Four high-level AI accelerator architecture classes: GPU, NPU, spatial dataflow, and compute-in-memory.](figures/accelerator-architecture.svg)
+![Four high-level AI accelerator architecture classes: GPU, NPU, spatial dataflow, and compute-in-memory.](figures/accelerator-architecture-overview.png)
 
 Each category exploits a different property of AI workloads: increasing data reuse, specializing
 compute resources, or improving data locality. Designs in the same category still differ in
@@ -1346,7 +1346,7 @@ Table: **Key architectural features of representative AI accelerators.** Scale-u
 
 #### 4.2.2 GPU: General-Purpose Parallel Execution and Specialized Matrix Computation
 
-![GPU organization: SIMT cores with tensor units over shared memory and cache.](figures/accelerator-gpu.svg)
+![GPU organization: SIMT cores with tensor units over shared memory and cache.](figures/accelerator-architecture-gpu.png)
 
 GPUs keep the **SIMT** (single-instruction, multiple-thread) execution model that made them
 broadly programmable, and add tensor or matrix cores for the dense linear algebra that dominates
@@ -1378,7 +1378,7 @@ serve as the general-purpose substrate of large AI datacenters.
 
 #### 4.2.3 NPU: Heterogeneous Compute Engines and Shared Local Memory
 
-![NPU organization: matrix, vector, scalar, and special-function engines around a shared scratchpad.](figures/accelerator-npu.svg)
+![NPU organization: matrix, vector, scalar, and special-function engines around a shared scratchpad.](figures/accelerator-architecture-npu.png)
 
 NPUs answer the same demand with explicit heterogeneity. Representative designs include Google
 TPU [@tpuArch,2023ISCATPUv4,tpuv5p,tpuv5e,tpuv6e,tpuv7,tpuv8], AWS
@@ -1428,7 +1428,7 @@ full mesh, direct full mesh, switched Ethernet and switched all-to-all all appea
 
 #### 4.2.4 Spatial Dataflow I: PE Arrays and Distributed Local Memory
 
-![Spatial-dataflow organization in three forms: a processing-element array, a reconfigurable fabric, and functional-slice streaming.](figures/accelerator-spatial-dataflow.svg)
+![Spatial-dataflow organization in three forms: a processing-element array, a reconfigurable fabric, and functional-slice streaming.](figures/accelerator-architecture-spatial-dataflow.png)
 
 Spatial dataflow architectures map a computation graph directly onto distributed compute, memory
 and communication resources. Operator placement, local memory allocation and inter-operator data
@@ -1518,7 +1518,7 @@ it is bought by moving nearly every scheduling decision to compile time.
 
 #### 4.2.7 Compute-in-Memory: SRAM, DRAM, and the Location of Computation
 
-![Compute-in-memory organization: arithmetic inside memory arrays or in logic tightly coupled to memory banks.](figures/accelerator-cim.svg)
+![Compute-in-memory organization: arithmetic inside memory arrays or in logic tightly coupled to memory banks.](figures/accelerator-architecture-cim.png)
 
 The fourth category attacks the memory bottleneck at its source by putting arithmetic where the
 data already is. Representative designs include d-Matrix [@dMatrixcorsair], SK hynix

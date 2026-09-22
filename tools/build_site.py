@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Build the static docs site from CONTENTS.md.
+"""Build the static docs site from content/tutorial.md.
 
-Maps the CONTENTS.md heading levels onto the three panes of the site:
+Maps the content/tutorial.md heading levels onto the three panes of the site:
 
     ##   module      -> top navigation bar
     ###  section     -> left sidebar (one page each)
     #### subsection  -> right "On this page" pane
     ##### topic      -> nested entry in "On this page"
 
-CONTENTS.md remains the complete curriculum outline. A section, subsection, or
+content/tutorial.md remains the complete curriculum outline. A section, subsection, or
 topic is published only after body content is added beneath it, so planned
 headings can stay in the source without filling the site with empty pages.
 
@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CONTENTS = ROOT / "CONTENTS.md"
+TUTORIAL = ROOT / "content" / "tutorial.md"
 ASSET_SRC = Path(__file__).resolve().parent / "assets"
 BIB_SRC = Path(__file__).resolve().parent / "refs.bib"
 REDIRECTS_SRC = Path(__file__).resolve().parent / "redirects.json"
@@ -475,13 +475,13 @@ _HTML_TO_MD = {"strong": "**", "b": "**", "em": "*", "i": "*", "code": "`"}
 
 
 def _demote_html(text: str) -> str:
-    """Fold the handful of raw inline HTML tags in CONTENTS.md back into markdown,
+    """Fold the handful of raw inline HTML tags in content/tutorial.md back into markdown,
     so they survive escaping instead of showing up as literal &lt;strong&gt;."""
     return INLINE_HTML.sub(lambda m: _HTML_TO_MD[m.group(1)], text)
 
 
 def inline(text: str, refs: dict[str, tuple[str, str]], cites: Cites | None = None) -> str:
-    """Render CONTENTS inline markdown to HTML. Escapes first, so link text is safe."""
+    """Render tutorial inline markdown to HTML. Escapes first, so link text is safe."""
     out = html.escape(_demote_html(text), quote=False)
     out = CODE.sub(lambda m: f"<code>{m.group(1)}</code>", out)
 
@@ -939,7 +939,7 @@ def render_section(
 
 
 def build() -> int:
-    md = CONTENTS.read_text(encoding="utf-8")
+    md = TUTORIAL.read_text(encoding="utf-8")
     front, modules, refs = parse(md)
     redirects = json.loads(REDIRECTS_SRC.read_text(encoding="utf-8"))
 
